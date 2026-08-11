@@ -1,5 +1,6 @@
 results/
 logs/
+data/raw
 *.bam
 *.sam
 *.bai
