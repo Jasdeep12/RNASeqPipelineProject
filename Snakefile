@@ -1,18 +1,36 @@
+import pandas as pd
+
+samples = pd.read_csv("config/samples.tsv", sep="\t")
+SAMPLES = samples["sample"].tolist()
+
+
+
 rule all:
 	input:
-		"results/fastqc/sample1_R1__fastqc.html",
-		"results/fastqc/sample1_R2__fastqc.html",
-		"results/alignment/sample1.sam",
-		"results/bam/sample1.sorted.bam"	
-								
+		expand("results/fastqc/{sample}_R1__fastqc.html",
+		sample=SAMPLES
+	),
+		expand("results/fastqc/{sample}_R2__fastqc.html",
+		sample=SAMPLES
+	),	
+		expand("results/bam/{sample}.sorted.bam.bai",	
+		sample=SAMPLES
+	),	
+		expand("results/counts/{sample}_counts.txt",
+		sample=SAMPLES
+	),
+		expand("results/counts/{sample}_counts.txt.summary",
+		sample=SAMPLES
+	)		
+									
 rule fastqc:
 	input:
-		r1="data/raw/sample1_R1_.fastq.gz",
-		r2="data/raw/sample1_R2_.fastq.gz"
+		r1="data/raw/{sample}_R1_.fastq.gz",
+		r2="data/raw/{sample}_R2_.fastq.gz"
 	
 	output:
-		html1="results/fastqc/sample1_R1__fastqc.html",
-		html2="results/fastqc/sample1_R2__fastqc.html"
+		html1="results/fastqc/{sample}_R1__fastqc.html",
+		html2="results/fastqc/{sample}_R2__fastqc.html"
 
 	shell:
 		"""
@@ -21,12 +39,12 @@ rule fastqc:
 
 rule align:
 	input:
-		r1="data/raw/sample1_R1_.fastq.gz",
-		r2="data/raw/sample1_R2_.fastq.gz",
+		r1="data/raw/{sample}_R1_.fastq.gz",
+		r2="data/raw/{sample}_R2_.fastq.gz",
 		index="reference/hisat2_index/ecoli.1.ht2"
 
 	output:
-		"results/alignment/sample1.sam"
+		"results/alignment/{sample}.sam"
 	
 	shell:
 		"""
@@ -39,10 +57,10 @@ rule align:
 
 rule sam_to_bam:
 	input:
-		"results/alignment/sample1.sam"
+		"results/alignment/{sample}.sam"
 		
 	output:
-		"results/bam/sample1.sorted.bam"
+		"results/bam/{sample}.sorted.bam"
 
 	shell:
 		"""
@@ -51,5 +69,30 @@ rule sam_to_bam:
 		{input}
 		"""
 
+rule index_bam:
+	input:
+		"results/bam/{sample}.sorted.bam"
 
+	output:
+		"results/bam/{sample}.sorted.bam.bai"
+	shell:
+		"""
+		samtools index {input} {output}
+		"""
+rule quanitify:
+	input: 
+		bam="results/bam/{sample}.sorted.bam",
+		annotation="reference/genomic.gff"
+	output:
+		counts="results/counts/{sample}_counts.txt",
+		summary="results/counts/{sample}_counts.txt.summary"
 
+	shell:
+		"""
+		featureCounts -p \
+			-a {input.annotation} \
+			-o {output.counts} \
+			-t gene \
+			-g locus_tag \
+			{input.bam}
+		"""
