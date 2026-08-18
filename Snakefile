@@ -21,12 +21,13 @@ rule all:
 	),
 		expand("results/counts/{sample}_counts.txt.summary",
 		sample=SAMPLES
-	)		
+	),
+		"results/multiqc/multiqc_report.html"	
 									
 rule fastqc:
 	input:
-		r1="data/raw/{sample}_R1_.fastq.gz",
-		r2="data/raw/{sample}_R2_.fastq.gz"
+		r1=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R1"].iloc[0],
+		r2=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R2"].iloc[0]
 	
 	output:
 		html1="results/fastqc/{sample}_R1__fastqc.html",
@@ -39,8 +40,8 @@ rule fastqc:
 
 rule align:
 	input:
-		r1="data/raw/{sample}_R1_.fastq.gz",
-		r2="data/raw/{sample}_R2_.fastq.gz",
+		r1=lambda wildcards: samples.loc[sample["sample"] == wildcards.sample, "R1"].iloc[0],
+		r2=lambda wildcards: samples.loc[sample["sample"] == wildcards.sample, "R2"].iloc[0],
 		index="reference/hisat2_index/ecoli.1.ht2"
 
 	output:
@@ -95,4 +96,18 @@ rule quanitify:
 			-t gene \
 			-g locus_tag \
 			{input.bam}
+		"""
+
+rule multiqc:
+	input:
+		expand("results/fastqc/{sample}_R1__fastqc.zip", sample=SAMPLES),
+		expand("results/fastqc/{sample}_R2__fastqc.zip", sample=SAMPLES)
+	output:
+		html="results/multiqc/multiqc_report.html"
+
+	shell:
+		"""
+		multiqc results/fastqc \
+			--outdir results/multiqc \
+			--force \
 		"""
