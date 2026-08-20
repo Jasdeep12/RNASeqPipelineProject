@@ -47,29 +47,22 @@ rule align:
 		index="reference/hisat2_index/ecoli.1.ht2"
 
 	output:
-		"results/alignment/{sample}.sam"
+		bam="results/bam/{sample}.sorted.bam"
+	
+	log:
+		"logs/{sample}.hisat2.log"
 	
 	shell:
 		"""
+
 		hisat2 \
 		-x reference/hisat2_index/ecoli \
 		-1 {input.r1} \
 		-2 {input.r2} \
-		-S {output}
-		"""
-
-rule sam_to_bam:
-	input:
-		"results/alignment/{sample}.sam"
-		
-	output:
-		"results/bam/{sample}.sorted.bam"
-
-	shell:
-		"""
-		samtools sort \
-		-o {output} \
-		{input}
+		2> {log} \
+		| samtools sort \
+			-o {output.bam} \
+			-
 		"""
 
 rule index_bam:
@@ -82,7 +75,7 @@ rule index_bam:
 		"""
 		samtools index {input} {output}
 		"""
-rule quanitify:
+rule quantify:
 	input: 
 		bam="results/bam/{sample}.sorted.bam",
 		annotation="reference/genomic.gff"
