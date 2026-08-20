@@ -1,14 +1,13 @@
 samples:
- sample1
- 
-reads:
+  - sample1
 
- sample1:
-  R1: data/raw/SRR27899059_1.fastq.gz
-  R2: data/raw/SRR27899059_2.fastq.gz
-  
- reference:
-  genome: reference/genome.fa
-  
- annotation:
-  gtf: reference/genes.gtf
+reads:
+  sample1:
+    R1: data/raw/SRR27899059_1.fastq.gz
+    R2: data/raw/SRR27899059_2.fastq.gz
+
+reference:
+  genome: reference/genome.fna
+
+annotation:
+  gff: reference/genomic.gff
