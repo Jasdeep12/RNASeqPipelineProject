@@ -31,7 +31,9 @@ rule fastqc:
 	
 	output:
 		html1="results/fastqc/{sample}_R1__fastqc.html",
-		html2="results/fastqc/{sample}_R2__fastqc.html"
+		zip1="results/fastqc/{sample}_R1__fastqc.zip",
+		html2="results/fastqc/{sample}_R2__fastqc.html",
+		zip2="results/fastqc/{sample}_R2__fastqc.zip"
 
 	shell:
 		"""
@@ -40,8 +42,8 @@ rule fastqc:
 
 rule align:
 	input:
-		r1=lambda wildcards: samples.loc[sample["sample"] == wildcards.sample, "R1"].iloc[0],
-		r2=lambda wildcards: samples.loc[sample["sample"] == wildcards.sample, "R2"].iloc[0],
+		r1=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R1"].iloc[0],
+		r2=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R2"].iloc[0],
 		index="reference/hisat2_index/ecoli.1.ht2"
 
 	output:
