@@ -47,15 +47,16 @@ Paired-end FASTQ
 
 This pipeline uses a Conda environment defined in:
 
-"envs/RNASeqPipelineProject.yml"
+`envs/RNASeqPipelineProject.yml`
 
 The environment can be recreated with:
 
-BASH
+```bash
 conda env create -f envs/RNASeqPipelineProject.yml
 
 ## Project Structure
 
+```text
 RNASeqPipelineProject/
 |- Snakefile
 |- README.md
