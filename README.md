@@ -17,6 +17,7 @@ Input : Fastq
 -> HISAT2
 -> SAMtools sorting
 -> BAM indexing
+-> SAMtools flagstat
 -> featureCounts
 -> MultiQC
 

@@ -16,6 +16,9 @@ rule all:
 		expand("results/bam/{sample}.sorted.bam.bai",	
 		sample=SAMPLES
 	),	
+		expand("results/qc/{sample}.flagstat.txt",
+		sample=SAMPLES
+	),
 		expand("results/counts/{sample}_counts.txt",
 		sample=SAMPLES
 	),
@@ -75,6 +78,21 @@ rule index_bam:
 		"""
 		samtools index {input} {output}
 		"""
+
+
+rule bam_qc:
+	input:
+		bam="results/bam/{sample}.sorted.bam"
+	
+	output:
+		"results/qc/{sample}.flagstat.txt"
+	
+	shell:
+		"""
+		samtools flagstat {input.bam} > {output}
+		"""
+
+
 rule quantify:
 	input: 
 		bam="results/bam/{sample}.sorted.bam",
@@ -95,14 +113,19 @@ rule quantify:
 
 rule multiqc:
 	input:
-		expand("results/fastqc/{sample}_R1__fastqc.zip", sample=SAMPLES),
-		expand("results/fastqc/{sample}_R2__fastqc.zip", sample=SAMPLES)
+		fastqc_r1=expand("results/fastqc/{sample}_R1__fastqc.zip", sample=SAMPLES),
+		fastqc_r2=expand("results/fastqc/{sample}_R2__fastqc.zip", sample=SAMPLES),
+		flagstat=expand("results/qc/{sample}.flagstat.txt", sample=SAMPLES),
+		hisat2=expand("logs/{sample}.hisat2.log", sample=SAMPLES)
 	output:
 		html="results/multiqc/multiqc_report.html"
 
 	shell:
 		"""
-		multiqc results/fastqc \
+		multiqc \
+			results/fastqc \
+			results/qc \
+			logs \
 			--outdir results/multiqc \
-			--force \
+			--force
 		"""
