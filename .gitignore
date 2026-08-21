@@ -5,3 +5,7 @@ data/raw
 *.bam
 *.sam
 *.bai
+__pycache__/
+*.pyc
+.Rhistory
+.RData

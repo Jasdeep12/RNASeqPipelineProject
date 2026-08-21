@@ -1,8 +1,14 @@
 import pandas as pd
 
+
+configfile: "config/config.yaml"
+
 samples = pd.read_csv("config/samples.tsv", sep="\t")
 SAMPLES = samples["sample"].tolist()
 
+HISAT2_INDEX = config["reference"]["hisat2_index"]
+ALIGN_THREADS = config["threads"]["align"]
+SAMTOOLS_THREADS = config["threads"]["samtools"]
 
 
 rule all:
@@ -38,6 +44,9 @@ rule fastqc:
 		html2="results/fastqc/{sample}_R2__fastqc.html",
 		zip2="results/fastqc/{sample}_R2__fastqc.zip"
 
+	conda:
+		"envs/RNASeqPipelineProject.yml"
+
 	shell:
 		"""
 		fastqc {input.r1} {input.r2} --outdir results/fastqc
@@ -47,23 +56,29 @@ rule align:
 	input:
 		r1=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R1"].iloc[0],
 		r2=lambda wildcards: samples.loc[samples["sample"] == wildcards.sample, "R2"].iloc[0],
-		index="reference/hisat2_index/ecoli.1.ht2"
+		index=HISAT2_INDEX + ".1.ht2"
 
 	output:
 		bam="results/bam/{sample}.sorted.bam"
-	
+
+	conda:
+		"envs/RNASeqPipelineProject.yml"	
+
 	log:
 		"logs/{sample}.hisat2.log"
 	
+	threads: ALIGN_THREADS
+
 	shell:
 		"""
-
 		hisat2 \
-		-x reference/hisat2_index/ecoli \
+		-p {threads} \
+		-x {HISAT2_INDEX} \
 		-1 {input.r1} \
 		-2 {input.r2} \
 		2> {log} \
 		| samtools sort \
+			-@ {SAMTOOLS_THREADS} \
 			-o {output.bam} \
 			-
 		"""
@@ -74,6 +89,9 @@ rule index_bam:
 
 	output:
 		"results/bam/{sample}.sorted.bam.bai"
+	conda:
+		"envs/RNASeqPipelineProject.yml"
+
 	shell:
 		"""
 		samtools index {input} {output}
@@ -87,6 +105,9 @@ rule bam_qc:
 	output:
 		"results/qc/{sample}.flagstat.txt"
 	
+	conda:
+		"envs/RNASeqPipelineProject.yml"
+
 	shell:
 		"""
 		samtools flagstat {input.bam} > {output}
@@ -96,11 +117,14 @@ rule bam_qc:
 rule quantify:
 	input: 
 		bam="results/bam/{sample}.sorted.bam",
-		annotation="reference/genomic.gff"
+		annotation=config["reference"]["annotation"]
 	output:
 		counts="results/counts/{sample}_counts.txt",
 		summary="results/counts/{sample}_counts.txt.summary"
 
+	conda:
+		"envs/RNASeqPipelineProject.yml"
+	
 	shell:
 		"""
 		featureCounts -p \
@@ -119,6 +143,9 @@ rule multiqc:
 		hisat2=expand("logs/{sample}.hisat2.log", sample=SAMPLES)
 	output:
 		html="results/multiqc/multiqc_report.html"
+
+	conda:
+		"envs/RNASeqPipelineProject.yml"
 
 	shell:
 		"""

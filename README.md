@@ -50,10 +50,20 @@ This pipeline uses a Conda environment defined in:
 
 `envs/RNASeqPipelineProject.yml`
 
-The environment can be recreated with:
+Snakemake directly manages the Conda environments, so no need to activate the environment.
 
-```bash
-conda env create -f envs/RNASeqPipelineProject.yml
+## Example Result
+
+For SRR13970441, HISAT2 achieved a 94.53% overall alignment rate.
+
+The pipeline generated:
+
+- FastQC quality-control reports
+- MultiQC summary report
+- Sorted and indexed BAM
+- SAMtools alignment QC
+- featureCounts gene-level count table
+
 
 ## Project Structure
 

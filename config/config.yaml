@@ -8,6 +8,9 @@ reads:
 
 reference:
   genome: reference/genome.fna
-
-annotation:
-  gff: reference/genomic.gff
+  annotation: reference/genomic.gff
+  hisat2_index: reference/hisat2_index/ecoli
+ 
+threads:
+  align: 2
+  samtools: 2
